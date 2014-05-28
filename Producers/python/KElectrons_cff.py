@@ -13,6 +13,7 @@ electronIdMVA = cms.Sequence(
 	mvaNonTrigV0
 	)
 
+
 ## ------------------------------------------------------------------------
 ## PAT electorn configuration
 ##  - electron Id sources

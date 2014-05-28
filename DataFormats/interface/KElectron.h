@@ -60,7 +60,13 @@ Within the electron, the corresponding values are grouped into an attribute call
 	float hadronicOverEm;
 	float fbrem;
 	float eSuperClusterOverP;
-	float numberOfHits;
+	float numberOfHits; //TODO: remove
+	
+	// cutbased ID
+	bool cutbasedIDloose;
+	bool cutbasedIDmedium;
+	bool cutbasedIDtight;
+	bool cutbasedIDveto;
 
 	//supercluster
 	float superclusterenergy;
@@ -72,9 +78,16 @@ Within the electron, the corresponding values are grouped into an attribute call
 	bool isEcalEnergyCorrected;	//true if ecal energy has been corrected.
 	float ecalEnergy;					//the new corrected value, or the supercluster energy.
 	float ecalEnergyError;
-	//bool isMomentumCorrected;	//true if E-p combination has been applied.
+	bool isMomentumCorrected;	//true if E-p combination has been applied.
+	bool isEnergyScaleCorrected;
 	float trackMomentumError;		//track momentum error from gsf fit.
 	//float electronMomentumError;//the final electron momentum error.
+
+
+	// this is for PF iso
+	float pfIsoCh;
+	float pfIsoEm;
+	float pfIsoNh;
 
 
 	float mva; // PF data
