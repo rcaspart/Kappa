@@ -17,6 +17,7 @@
 #include <RecoEgamma/EgammaTools/interface/ConversionTools.h>
 #include <DataFormats/BeamSpot/interface/BeamSpot.h>
 #include "EgammaAnalysis/ElectronTools/interface/EGammaCutBasedEleId.h"
+#include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
 
 
@@ -108,13 +109,13 @@ public:
 		double rhoIso = *(rhoIso_h.product());
 
 		out.cutbasedIDloose = EgammaCutBasedEleId::PassWP(EgammaCutBasedEleId::LOOSE,
-		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso);
+		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso, ElectronEffectiveArea::kEleEAData2012);
 		out.cutbasedIDmedium = EgammaCutBasedEleId::PassWP(EgammaCutBasedEleId::MEDIUM,
-		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso);
+		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso, ElectronEffectiveArea::kEleEAData2012);
 		out.cutbasedIDtight = EgammaCutBasedEleId::PassWP(EgammaCutBasedEleId::TIGHT,
-		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso);
+		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso, ElectronEffectiveArea::kEleEAData2012);
 		out.cutbasedIDveto = EgammaCutBasedEleId::PassWP(EgammaCutBasedEleId::VETO,
-		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso);
+		*tmpGsfElectron, hConversions, tmpbeamSpot, VertexCollection, iso_ch, iso_em, iso_nh, rhoIso, ElectronEffectiveArea::kEleEAData2012);
 	}
 
 	virtual void fillProduct(const InputType &in, OutputType &out,
