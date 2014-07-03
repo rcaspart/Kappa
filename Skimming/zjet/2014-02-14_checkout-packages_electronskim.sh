@@ -25,7 +25,7 @@ sed -i 's/(full_53x_chs,cutbased)/(full_53x_chs,cutbased,full_53x_met)/g' $CMSSW
 
 
 
-git clone https://github.com/amarini/QuarkGluonTagger.git && cd QuarkGluonTagger && git checkout v1-2-6 && cd ..
+git clone https://github.com/amarini/QuarkGluonTagger.git -b v1-2-6
 
 
 git cms-addpkg EgammaAnalysis/ElectronTools
