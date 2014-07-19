@@ -142,6 +142,15 @@ std::ostream &operator<<(std::ostream &os, const KFilterSummary &filter)
 		<< " decision=" << std::bitset<16>(filter.decision);
 }
 
+std::ostream &operator<<(std::ostream &os, const KTauSpinner &w)
+{
+	return os << "TauSpinner: " << WTisValid : "weight is valid" ? "weight is invalid" << ", "
+		<< "Weight = " << WT << ", "
+		<< "WTFlip = " << WTFlip << ", "
+		<< "WTHminus = " << WTHminus << ", "
+		<< "WTHplus = " << WTHplus;s
+}
+
 ////////////////////////////////////////////////////////////
 // KMetadata.h
 ////////////////////////////////////////////////////////////

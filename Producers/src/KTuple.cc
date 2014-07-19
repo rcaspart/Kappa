@@ -53,6 +53,7 @@
 #include "../interface/KTriggerObjectProducer.h"
 #include "../interface/KVertexProducer.h"
 #include "../interface/KVertexSummaryProducer.h"
+#include "../interface/KTauSpinnerProducer.h"
 /* are these still used?
 #include "../interface/KHepMCPartonProducer.h"
 #include "../interface/KL1MuonProducer.h"
@@ -202,6 +203,7 @@ KTuple::KTuple(const edm::ParameterSet &_psConfig) :
 		addProducer<KVertexProducer>(active[i]);
 		addProducer<KVertexSummaryProducer>(active[i]);
 		addProducer<KTreeMetadataProducer >(active[i]);
+		addProducer<KTauSpinnerProducer >(active[i]);
 /* are these still used?
 		else if (active[i] == "L1Muons")
 			addProducer<KL1MuonProducer>(psConfig, active[i]);

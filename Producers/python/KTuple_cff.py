@@ -396,6 +396,15 @@ kappaTupleDefaultsBlock = cms.PSet(
 		)
 	),
 
+	TauSpinner = cms.PSet(
+		manual = cms.VInputTag(),
+		whitelist = cms.vstring(".*TauSpinner.*"),
+		blacklist = cms.vstring(""),
+		rename = cms.vstring(),
+		rename_whitelist = cms.vstring(),
+		rename_blacklist = cms.vstring(),
+	),
+
 	CaloTaus = cms.PSet(kappaNoCut, kappaNoRegEx,
 		caloRecoTaus = cms.PSet(
 			src = cms.InputTag("caloRecoTauProducer"),

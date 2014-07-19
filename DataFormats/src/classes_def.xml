@@ -55,6 +55,7 @@
 	<class name="KTrackSummary"/>
 	<class name="KTriggerObjects"/>
 	<class name="KVertexSummary"/>
+	<class name="KTauSpinner"/>
 
 	<class name="KTriggerInfos"/>
 	<class name="KFilterMetadata"/>

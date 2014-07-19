@@ -39,6 +39,7 @@ KPFCandidate			KPFCandidates
 KTrackSummary
 KTriggerObjects
 KVertexSummary
+KTauSpinner
 
 KTriggerInfos
 KFilterMetadata

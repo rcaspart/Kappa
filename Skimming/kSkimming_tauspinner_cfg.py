@@ -92,82 +92,11 @@ def getBaseConfig(globaltag= 'START53_V15A::All', testfile=cms.untracked.vstring
 	# disable overrideHLTCheck for embedded samples, since it triggers an Kappa error
 	process.kappaTuple.Metadata.overrideHLTCheck = cms.untracked.bool(datasetsHelper.getIsEmbedded(nickname))
 
-	## ------------------------------------------------------------------------
-	# Configure PFCandidates and offline PV
-	process.load("Kappa.Producers.KPFCandidates_cff")
-	process.kappaTuple.active += cms.vstring('PFCandidates')		## save PFCandidates for deltaBeta corrected 
-	process.kappaTuple.PFCandidates.whitelist = cms.vstring(                ## isolation used for electrons and muons.
-		"pfNoPileUpChargedHadrons",
-		"pfNoPileUpNeutralHadrons",
-		"pfNoPileUpPhotons",
-		"pfPileUpChargedHadrons",
-		)
-
-	## ------------------------------------------------------------------------
-	# Configure Muons
-	process.load("Kappa.Producers.KMuons_cff")
-	process.kappaTuple.active += cms.vstring('Muons')	                ## produce/save KappaMuons
-	
-	## ------------------------------------------------------------------------
-	# Configure Electrons
-	process.load("Kappa.Producers.KElectrons_cff")
-	process.kappaTuple.active += cms.vstring('Electrons')	                ## produce/save KappaElectrons,
-
-	## ------------------------------------------------------------------------
-	# Configure Taus
-	process.load("Kappa.Producers.KTaus_cff")
-	process.kappaTuple.active += cms.vstring('PFTaus')	                ## produce/save KappaTaus
-
-	## ------------------------------------------------------------------------
-	## KappaPFTaggedJets
-	process.load("Kappa.Producers.KPFTaggedJets_cff")
-	process.kappaTuple.active += cms.vstring('PFTaggedJets')           ## produce KappaPFTaggedJets
-	process.kappaTuple.PFTaggedJets = cms.PSet(
-		process.kappaNoCut,
-		process.kappaNoRegEx,
-		taggers = cms.vstring(
-			"QGlikelihood",
-			"QGmlp",
-			"TrackCountingHighEffBJetTags",
-			"TrackCountingHighPurBJetTags", 
-			"JetProbabilityBJetTags",
-			"JetBProbabilityBJetTags", 
-			"SoftElectronBJetTags",
-			"SoftMuonBJetTags",
-			"SoftMuonByIP3dBJetTags",
-			"SoftMuonByPtBJetTags",
-			"SimpleSecondaryVertexBJetTags", 
-			"CombinedSecondaryVertexBJetTags",
-			"CombinedSecondaryVertexMVABJetTags",
-			"puJetIDFullLoose",
-			"puJetIDFullMedium",
-			"puJetIDFullTight",
-			"puJetIDCutbasedLoose",
-			"puJetIDCutbasedMedium",
-			"puJetIDCutbasedTight" 
-			),
-		AK5PFTaggedJets = cms.PSet(
-			src = cms.InputTag("ak5PFJets"),
-			QGtagger = cms.InputTag("AK5PFJetsQGTagger"),
-			Btagger  = cms.InputTag("ak5PF"),
-			PUJetID  = cms.InputTag("ak5PFPuJetMva"),
-			PUJetID_full = cms.InputTag("full"),
-			),
-		AK5PFTaggedJetsCHS = cms.PSet(
-			src = cms.InputTag("ak5PFJetsCHS"),
-			QGtagger = cms.InputTag("AK5PFJetsCHSQGTagger"),
-			Btagger  = cms.InputTag("ak5PFCHS"),
-			PUJetID  = cms.InputTag("ak5PFCHSPuJetMva"),
-			PUJetID_full = cms.InputTag("full"),
-			),
-		)
-	process.kappaTuple.active += cms.vstring('JetArea')
 
 	## ------------------------------------------------------------------------
 	## TauSpinner
 	process.load("Kappa.Producers.KTauSpinner_cff")
 	process.kappaTuple.active += cms.vstring('TauSpinner')
-
 
 	## ------------------------------------------------------------------------
 	## MET
@@ -178,17 +107,17 @@ def getBaseConfig(globaltag= 'START53_V15A::All', testfile=cms.untracked.vstring
 	## ------------------------------------------------------------------------
 	## And let it run
 	process.p = cms.Path(
-		process.makePFBRECO *
-		process.makePFCandidatesForDeltaBeta *
-		process.makeKappaMuons *
-		process.makeKappaElectrons *
-		process.makeKappaTaus *
-		process.makePFJets *
-		process.makePFJetsCHS *
-		process.makeQGTagging *
-		process.makeBTagging *
-		process.makePUJetID *
-		process.makeKappaMET *
+#		process.makePFBRECO *
+#		process.makePFCandidatesForDeltaBeta *
+#		process.makeKappaMuons *
+#		process.makeKappaElectrons *
+#		process.makeKappaTaus *
+#		process.makePFJets *
+#		process.makePFJetsCHS *
+#		process.makeQGTagging *
+#		process.makeBTagging *
+#		process.makePUJetID *
+#		process.makeKappaMET *
 		process.TauSpinnerReco *
 		process.kappaOut
 		)
@@ -196,13 +125,13 @@ def getBaseConfig(globaltag= 'START53_V15A::All', testfile=cms.untracked.vstring
 	## ------------------------------------------------------------------------
 	## declare edm OutputModule (expects a path 'p'), uncommented if wanted
 
-	#process.edmOut = cms.OutputModule(
-	#	"PoolOutputModule",
-	#	fileName = cms.untracked.string('dump.root'),				## name of output file
-	#	SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),	## save only events passing the full path
-	#	outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_KAPPA')	## save each edm object that has been produced by process KAPPA
-	#	)
-	#process.ep = cms.EndPath(process.edmOut)
+	process.edmOut = cms.OutputModule(
+		"PoolOutputModule",
+		fileName = cms.untracked.string('dump.root'),				## name of output file
+		SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),	## save only events passing the full path
+		outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_KAPPA')	## save each edm object that has been produced by process KAPPA
+		)
+	process.ep = cms.EndPath(process.edmOut)
 
 	return process
 
@@ -212,7 +141,7 @@ if __name__ == "__main__":
 		#testfile	= cms.untracked.vstring('file:/storage/8/dhaitz/testfiles/mc11.root')
 		#testfile	= cms.untracked.vstring('file:/storage/6/berger/testfiles/data_2012C_AOD.root')
 		## test file for lxplus
-		testfile	= cms.untracked.vstring('root://eoscms//eos/cms/store/relval/CMSSW_5_3_6-START53_V14/RelValProdTTbar/AODSIM/v2/00000/76ED0FA6-1E2A-E211-B8F1-001A92971B72.root')
+		testfile	= cms.untracked.vstring('file:/storage/a/friese/aod/VBF-Htautau.root')
 		## test file for RWTH
 		#testfile	= cms.untracked.vstring('file:/user/kargoll/testfiles/DYTauTau/DYTauTau_Summer12.root')
 		process = getBaseConfig(testfile = testfile)

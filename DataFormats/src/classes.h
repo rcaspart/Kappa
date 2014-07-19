@@ -9,6 +9,7 @@
 #include "../interface/KMetadata.h"
 #include "../interface/KMuon.h"
 #include "../interface/KTau.h"
+#include "../interface/KTauSpinner.h"
 #include "../interface/KTrack.h"
 
 namespace
@@ -71,6 +72,7 @@ namespace
 		KTrackSummary dict_KTrackSummary;
 		KTriggerObjects dict_KTriggerObjects;
 		KVertexSummary dict_KVertexSummary;
+		KTauSpinner dict_KTauSpinner;
 
 		KTriggerInfos dict_KTriggerInfos;
 		KFilterMetadata dict_KFilterMetadata;

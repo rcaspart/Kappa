@@ -8,6 +8,7 @@
 #include "KMetadata.h"
 #include "KMuon.h"
 #include "KTau.h"
+#include "KTauSpinner.h"
 #include "KTrack.h"
 
 template<typename T>
@@ -76,6 +77,7 @@ REGISTER_NAME_OF_TYPE(KPFCandidates,std::vector<KPFCandidate>);
 REGISTER_NAME_OF_TYPE(KTrackSummary,KTrackSummary);
 REGISTER_NAME_OF_TYPE(KTriggerObjects,KTriggerObjects);
 REGISTER_NAME_OF_TYPE(KVertexSummary,KVertexSummary);
+REGISTER_NAME_OF_TYPE(KTauSpinner,KTauSpinner);
 REGISTER_NAME_OF_TYPE(KTriggerInfos,KTriggerInfos);
 REGISTER_NAME_OF_TYPE(KFilterMetadata,KFilterMetadata);
 REGISTER_NAME_OF_TYPE(KTaggerMetadata,KTaggerMetadata);

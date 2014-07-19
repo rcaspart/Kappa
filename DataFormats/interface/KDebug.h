@@ -24,6 +24,7 @@ std::ostream &operator<<(std::ostream &os, const KJetArea &ja);
 std::ostream &operator<<(std::ostream &os, const KDataHit &hit);
 std::ostream &operator<<(std::ostream &os, const KPFCandidate &cand);
 std::ostream &operator<<(std::ostream &os, const KFilterSummary &filter);
+std::ostream &operator<<(std::ostream &os, const KTauSpinner &w);
 std::ostream &operator<<(std::ostream &os, const KProvenance &p);
 std::ostream &operator<<(std::ostream &os, const KLumiMetadata &m);
 std::ostream &operator<<(std::ostream &os, const KGenLumiMetadata &m);
