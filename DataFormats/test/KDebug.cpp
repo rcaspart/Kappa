@@ -144,11 +144,11 @@ std::ostream &operator<<(std::ostream &os, const KFilterSummary &filter)
 
 std::ostream &operator<<(std::ostream &os, const KTauSpinner &w)
 {
-	return os << "TauSpinner: " << WTisValid : "weight is valid" ? "weight is invalid" << ", "
-		<< "Weight = " << WT << ", "
-		<< "WTFlip = " << WTFlip << ", "
-		<< "WTHminus = " << WTHminus << ", "
-		<< "WTHplus = " << WTHplus;s
+	return os << "TauSpinner: " << w.WTisValid << ", "
+		<< "Weight = " << w.WT << ", "
+		<< "WTFlip = " << w.WTFlip << ", "
+		<< "WThminus = " << w.WThminus << ", "
+		<< "WThplus = " << w.WThplus;
 }
 
 ////////////////////////////////////////////////////////////
