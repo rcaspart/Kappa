@@ -100,24 +100,13 @@ def getBaseConfig(globaltag= 'START53_V15A::All', testfile=cms.untracked.vstring
 
 	## ------------------------------------------------------------------------
 	## MET
-	process.load("Kappa.Producers.KMET_cff")
-	process.kappaTuple.active += cms.vstring('MET')                         ## produce/save KappaMET
-	process.kappaTuple.active += cms.vstring('PFMET')                       ## produce/save KappaPFMET
+#	process.load("Kappa.Producers.KMET_cff")
+#	process.kappaTuple.active += cms.vstring('MET')                         ## produce/save KappaMET
+#	process.kappaTuple.active += cms.vstring('PFMET')                       ## produce/save KappaPFMET
 
 	## ------------------------------------------------------------------------
 	## And let it run
 	process.p = cms.Path(
-#		process.makePFBRECO *
-#		process.makePFCandidatesForDeltaBeta *
-#		process.makeKappaMuons *
-#		process.makeKappaElectrons *
-#		process.makeKappaTaus *
-#		process.makePFJets *
-#		process.makePFJetsCHS *
-#		process.makeQGTagging *
-#		process.makeBTagging *
-#		process.makePUJetID *
-#		process.makeKappaMET *
 		process.TauSpinnerReco *
 		process.kappaOut
 		)
@@ -125,13 +114,13 @@ def getBaseConfig(globaltag= 'START53_V15A::All', testfile=cms.untracked.vstring
 	## ------------------------------------------------------------------------
 	## declare edm OutputModule (expects a path 'p'), uncommented if wanted
 
-	process.edmOut = cms.OutputModule(
-		"PoolOutputModule",
-		fileName = cms.untracked.string('dump.root'),				## name of output file
-		SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),	## save only events passing the full path
-		outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_KAPPA')	## save each edm object that has been produced by process KAPPA
-		)
-	process.ep = cms.EndPath(process.edmOut)
+#	process.edmOut = cms.OutputModule(
+#		"PoolOutputModule",
+#		fileName = cms.untracked.string('dump.root'),				## name of output file
+#		SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),	## save only events passing the full path
+#		outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_KAPPA')	## save each edm object that has been produced by process KAPPA
+#		)
+#	process.ep = cms.EndPath(process.edmOut)
 
 	return process
 
