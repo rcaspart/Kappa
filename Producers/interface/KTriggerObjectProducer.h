@@ -92,6 +92,14 @@ protected:
 				bool found = false;
 				for (size_t iF = 0; iF < triggerEventHandle.sizeFilters(); ++iF)
 				{
+					size_t currentIndex = trgInfos->getMinFilterIndex(i) + m;
+					if (trgInfos->toFilter[currentIndex].empty()) // Register L1L2 object
+					{
+						trgInfos->toFilter[currentIndex] = saveTagsModules[m];
+						if (verbosity > 0)
+							std::cout << "toFilter[" << currentIndex << "] = " << saveTagsModules[m] << std::endl;
+							// std::cout << name << " object: " << currentIndex << " "  << trgInfos->toFilter[currentIndex] << std::endl;
+					}
 					if (saveTagsModules[m] == triggerEventHandle.filterTag(iF).label())
 					{
 						found = true;
@@ -99,15 +107,8 @@ protected:
 							std::cout << "<" << saveTagsModules[m] << "> ";
 						
 						// current index in output vectors
-						size_t currentIndex = trgInfos->getMinFilterIndex(i) + m;
 						
 						// register filter name in the meta data and check possible changes in names within lumi section
-						if (trgInfos->toFilter[currentIndex] == "") // Register L1L2 object
-						{
-							trgInfos->toFilter[currentIndex] = saveTagsModules[m];
-							if (verbosity > 0)
-								std::cout << "\t" << name << " object: " << trgInfos->toFilter[currentIndex] << std::endl;
-						}
 						else if (trgInfos->toFilter[currentIndex] != saveTagsModules[m]) // Check existing entry
 						{
 							bool isPresent = (std::find(KMetadataProducerBase::svHLTFailToleranceList.begin(),
