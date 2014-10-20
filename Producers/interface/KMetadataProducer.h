@@ -246,7 +246,6 @@ public:
 		// Set basic event infos
 		metaEvent->nRun = event.id().run();
 		metaEvent->nEvent = event.id().event();
-		metaEvent->nLumi = event.luminosityBlock();
 		if (brokenLSIndex.count(std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())))
 			metaEvent->nLumi = getFixedLumiSection(event.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())]);
 		else
