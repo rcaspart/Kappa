@@ -105,6 +105,8 @@ public:
 
 	static const std::string getLabel() { return "Metadata"; }
 
+	// Rename LumiSection by bitshifting the internal counter and the jobid
+	// Works only if the the colliding jobs are close to each other (< 1024)
 	lumi_id getFixedLumiSection(lumi_id nLumi, size_t counter, size_t jobid=0) {
 		return nLumi + (counter << 16) + ((jobid % 1024) << 22);
 	}
@@ -212,6 +214,8 @@ public:
 
 	virtual bool onLumi(const edm::LuminosityBlock &lumiBlock, const edm::EventSetup &setup)
 	{
+		if (lumiBlock.luminosityBlock() > 65535)
+			throw cms::Exception("The fixed lumisection numbers can collide with existing lumisections!");
 		// Check if Lumi is in brokenLS
 		for ( std::vector<edm::LuminosityBlockRange>::const_iterator lumisBegin = fixBrokenLS.begin(),
 				lumisEnd = fixBrokenLS.end(), ilumi = lumisBegin;
