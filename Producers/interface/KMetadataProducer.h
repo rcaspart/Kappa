@@ -87,7 +87,8 @@ public:
 		avoidEaWCategories(cfg.getParameter<std::vector<std::string> >("errorsAndWarningsAvoidCategories")),
 		printErrorsAndWarnings(cfg.getParameter<bool>("printErrorsAndWarnings")),
 		printHltList(cfg.getParameter<bool>("printHltList")),
-		overrideHLTCheck(cfg.getUntrackedParameter<bool>("overrideHLTCheck", false))
+		overrideHLTCheck(cfg.getUntrackedParameter<bool>("overrideHLTCheck", false)),
+		fixBrokenLS(cfg.getUntrackedParameter<std::vector<edm::LuminosityBlockRange> > ("fixBrokenLS"))
 	{
 		metaLumi = new typename Tmeta::typeLumi();
 		_lumi_tree->Bronch("KLumiMetadata", Tmeta::idLumi().c_str(), &metaLumi);
@@ -103,6 +104,10 @@ public:
 	virtual ~KMetadataProducer() {};
 
 	static const std::string getLabel() { return "Metadata"; }
+
+	lumi_id getFixedLumiSection(lumi_id nLumi, size_t counter, size_t jobid=0) {
+		return nLumi + (counter << 16) + ((jobid % 1024) << 22);
+	}
 
 	inline void addHLT(const int idx, const std::string name, const int prescale/*, std::vector<std::string> filterNamesForHLT*/)
 	{
@@ -207,9 +212,22 @@ public:
 
 	virtual bool onLumi(const edm::LuminosityBlock &lumiBlock, const edm::EventSetup &setup)
 	{
+		// Check if Lumi is in brokenLS
+		for ( std::vector<edm::LuminosityBlockRange>::const_iterator lumisBegin = fixBrokenLS.begin(),
+				lumisEnd = fixBrokenLS.end(), ilumi = lumisBegin;
+				ilumi != lumisEnd; ++ilumi ) {
+			if (edm::contains(*ilumi, edm::LuminosityBlockID(lumiBlock.run(),lumiBlock.luminosityBlock()))) {
+				brokenLSIndex[std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())]++;
+				// std::cout << "Broken LUMI " << brokenLSIndex[std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())] << std::endl;
+				break;
+			}
+		}
 		metaLumi = &(metaLumiMap[std::pair<run_id, lumi_id>(lumiBlock.run(), lumiBlock.luminosityBlock())]);
 		metaLumi->nRun = lumiBlock.run();
-		metaLumi->nLumi = lumiBlock.luminosityBlock();
+		if (brokenLSIndex.count(std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())))
+			metaLumi->nLumi = getFixedLumiSection(lumiBlock.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())]);
+		else
+			metaLumi->nLumi = lumiBlock.luminosityBlock();
 		metaLumi->bitsUserFlags = 0;
 
 		metaLumi->hltNames = hltNames;
@@ -225,6 +243,11 @@ public:
 		metaEvent->nRun = event.id().run();
 		metaEvent->nEvent = event.id().event();
 		metaEvent->nLumi = event.luminosityBlock();
+		if (brokenLSIndex.count(std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())))
+			metaEvent->nLumi = getFixedLumiSection(event.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())]);
+		else
+			metaEvent->nLumi = event.luminosityBlock();
+
 		metaEvent->nBX = event.bunchCrossing();
 		metaEvent->randomNumber = randomGenerator.Rndm();
 		// If we are running on real data then the trigger should
@@ -371,5 +394,9 @@ protected:
 	typename Tmeta::typeEvent *metaEvent;
 
 	std::map<std::pair<run_id, lumi_id>, typename Tmeta::typeLumi> metaLumiMap;
+
+	// Stuff to rename broken lumisections of 2012 run
+	std::vector<edm::LuminosityBlockRange> fixBrokenLS;
+	std::map<std::pair<run_id, lumi_id>, size_t> brokenLSIndex;
 };
 #endif

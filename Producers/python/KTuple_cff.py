@@ -37,6 +37,7 @@ kappaTupleDefaultsBlock = cms.PSet(
 		lumiSource = cms.InputTag("lumiProducer"),
 		pileUpInfoSource = cms.InputTag("addPileupInfo"),
 		isEmbedded = cms.bool(False),
+		fixBrokenLS = cms.untracked.VLuminosityBlockRange(),
 
 		l1Source = cms.InputTag("gtDigis"),
 		hltSource = cms.InputTag("TriggerResults"),
