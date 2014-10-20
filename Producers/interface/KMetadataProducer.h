@@ -88,7 +88,8 @@ public:
 		printErrorsAndWarnings(cfg.getParameter<bool>("printErrorsAndWarnings")),
 		printHltList(cfg.getParameter<bool>("printHltList")),
 		overrideHLTCheck(cfg.getUntrackedParameter<bool>("overrideHLTCheck", false)),
-		fixBrokenLS(cfg.getUntrackedParameter<std::vector<edm::LuminosityBlockRange> > ("fixBrokenLS"))
+		fixBrokenLS(cfg.getUntrackedParameter<std::vector<edm::LuminosityBlockRange> > ("fixBrokenLS")),
+		jobId(cfg.getUntrackedParameter<unsigned int> ("jobId"))
 	{
 		metaLumi = new typename Tmeta::typeLumi();
 		_lumi_tree->Bronch("KLumiMetadata", Tmeta::idLumi().c_str(), &metaLumi);
@@ -108,7 +109,10 @@ public:
 	// Rename LumiSection by bitshifting the internal counter and the jobid
 	// Works only if the the colliding jobs are close to each other (< 1024)
 	lumi_id getFixedLumiSection(lumi_id nLumi, size_t counter, size_t jobid=0) {
-		return nLumi + (counter << 16) + ((jobid % 1024) << 22);
+		lumi_id newLumi = nLumi + (counter << 16) + ((jobid % 1024) << 22);
+		if (verbosity > 0)
+			std::cout << "Lumi is remed to " << newLumi << " from " << nLumi << std::endl;
+		return newLumi;
 	}
 
 	inline void addHLT(const int idx, const std::string name, const int prescale/*, std::vector<std::string> filterNamesForHLT*/)
@@ -229,7 +233,7 @@ public:
 		metaLumi = &(metaLumiMap[std::pair<run_id, lumi_id>(lumiBlock.run(), lumiBlock.luminosityBlock())]);
 		metaLumi->nRun = lumiBlock.run();
 		if (brokenLSIndex.count(std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())))
-			metaLumi->nLumi = getFixedLumiSection(lumiBlock.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())]);
+			metaLumi->nLumi = getFixedLumiSection(lumiBlock.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(lumiBlock.run(),lumiBlock.luminosityBlock())], jobId);
 		else
 			metaLumi->nLumi = lumiBlock.luminosityBlock();
 		metaLumi->bitsUserFlags = 0;
@@ -247,7 +251,7 @@ public:
 		metaEvent->nRun = event.id().run();
 		metaEvent->nEvent = event.id().event();
 		if (brokenLSIndex.count(std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())))
-			metaEvent->nLumi = getFixedLumiSection(event.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())]);
+			metaEvent->nLumi = getFixedLumiSection(event.luminosityBlock(), brokenLSIndex[std::make_pair<run_id, lumi_id>(event.id().run(), event.luminosityBlock())], jobId);
 		else
 			metaEvent->nLumi = event.luminosityBlock();
 
@@ -401,5 +405,6 @@ protected:
 	// Stuff to rename broken lumisections of 2012 run
 	std::vector<edm::LuminosityBlockRange> fixBrokenLS;
 	std::map<std::pair<run_id, lumi_id>, size_t> brokenLSIndex;
+	unsigned int jobId;
 };
 #endif
