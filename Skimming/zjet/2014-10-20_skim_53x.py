@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-
+from FWCore.ParameterSet.VarParsing import VarParsing
 
 def getBaseConfig(globaltag, testfile="", maxevents=0, 
             datatype='data', channel='mm', rundepMC=False):
@@ -10,12 +10,44 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
        process = skim_base.getBaseConfig('START53_V12', "testfile.root")
     """
     #TODO: add config for mm and em channels
+
+    # for local testing (non-grid-mode):
+    if '@' in globaltag:
+        opt = VarParsing ('analysis')
+
+        # add command line arguments
+        opt.register ('nevents', 100, VarParsing.multiplicity.singleton,
+            VarParsing.varType.int, "Events to process")
+        opt.register ('testfile', 'storage/8/dhaitz/testfiles/mc_DYToEE-powheg.root',
+            VarParsing.multiplicity.singleton, VarParsing.varType.string,
+            "Test file to run on.")
+        opt.register ('datatype', 'mc', VarParsing.multiplicity.singleton,
+            VarParsing.varType.string, "Data type. Can be data or mc.")
+        opt.register ('globaltag', 'START53_V27', VarParsing.multiplicity.singleton,
+            VarParsing.varType.string, "Global Tag to be used.")
+        opt.register ('channel', 'ee', VarParsing.multiplicity.singleton,
+            VarParsing.varType.string, "Channel. Can be ee, mm or em.")
+        opt.register ('outputFileName', '', VarParsing.multiplicity.singleton,
+            VarParsing.varType.string, "Name for the Kappa output file.")
+
+        opt.parseArguments()
+        testfile = 'file:/' + opt.testfile
+        datatype = opt.datatype
+        rundepMC = (datatype == 'mc')
+        maxevents = opt.nevents
+        globaltag = opt.globaltag
+        channel = opt.channel
+        outputFileName = opt.outputFileName
     
-    # print the globalt tag and datatype for testing or by grid-control ---------
     isData = (datatype == 'data')
     isMC = not isData
-    print "GT:", globaltag, "| TYPE:", datatype, "| maxevents:", maxevents
-    print "| file:", testfile, "| channel", channel, "| run-Dependent:", rundepMC
+    if outputFileName == "":
+        outputFileName = "skim_%s.root" % datatype
+
+    # print the globalt tag and datatype for testing or by grid-control ---------
+    print "GT:", globaltag, "| TYPE:", datatype, "| maxevents:", maxevents, \
+        "| file:", testfile, "| channel", channel, "| run-Dependent:", rundepMC, \
+        "| outputFileName:", outputFileName
 
     # Basic process setup -----------------------------------------------------
     process = cms.Process('kappaSkim')
@@ -366,7 +398,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
     process.load('Kappa.Producers.KTuple_cff')
     process.kappatuple = cms.EDAnalyzer('KTuple',
         process.kappaTupleDefaultsBlock,
-        outputFile = cms.string("skim_%s.root" % datatype),
+        outputFile = cms.string(outputFileName),
         PFTaggedJets = cms.PSet(
             process.kappaNoCut,
             process.kappaNoRegEx,
@@ -431,7 +463,6 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
 
     if channel == 'ee':
         process.pathKappa = cms.Path(process.goodElectrons * process.twoGoodElectrons * process.kappatuple)
-        print "added filters to path"
     else:
         process.pathKappa = cms.Path(process.kappatuple)
 
@@ -454,18 +485,6 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
     return process
 
 
-def addOutputModule(process, filename="test_out.root"):
-    """Additional output file for testing.
-
-       Do not use for a full skim, only for a few 100 events.
-       Usage in cmssw config: process = base.addOutputModule(process)
-    """
-    process.Out = cms.OutputModule("PoolOutputModule",
-         fileName = cms.untracked.string(filename)
-    )
-    process.end = cms.EndPath(process.Out)
-    process.schedule.append(process.end)
-    return process
 
 if __name__ == "__main__":
     process = getBaseConfig('@GLOBALTAG@', datatype='@TYPE@', 
