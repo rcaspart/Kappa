@@ -37,7 +37,6 @@ patElectrons.electronIDSources = cms.PSet(
 patElectrons.addGenMatch                   = False
 patElectrons.embedGenMatch                 = False
 patElectrons.genParticleMatch              = ""
-"""
 patElectrons.embedGsfElectronCore          = False
 patElectrons.embedGsfTrack                 = False
 patElectrons.embedSuperCluster             = False
@@ -51,7 +50,6 @@ patElectrons.embedPFCandidate              = False
 patElectrons.embedTrack                    = False
 patElectrons.embedRecHits                  = False
 patElectrons.embedHighLevelSelection.pvSrc = "goodOfflinePrimaryVertices"
-"""
 
 ## ------------------------------------------------------------------------
 ## Definition of sequences
