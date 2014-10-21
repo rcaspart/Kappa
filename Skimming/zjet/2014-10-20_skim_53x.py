@@ -9,10 +9,13 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
        import skim_base
        process = skim_base.getBaseConfig('START53_V12', "testfile.root")
     """
+    #TODO: add config for mm and em channels
+    
     # print the globalt tag and datatype for testing or by grid-control ---------
     isData = (datatype == 'data')
     isMC = not isData
-    print "GT:", globaltag, "| TYPE:", datatype, "| maxevents:", maxevents, "| file:", testfile
+    print "GT:", globaltag, "| TYPE:", datatype, "| maxevents:", maxevents
+    print "| file:", testfile, "| channel", channel, "| run-Dependent:", rundepMC
 
     # Basic process setup -----------------------------------------------------
     process = cms.Process('kappaSkim')
@@ -48,6 +51,18 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
     # Electrons ---------------------------------------------------------------
     process.load("Kappa.Producers.KElectrons_cff")
     
+    
+    if channel == 'ee':
+        # Require two good electron --------------------------------------------------
+        process.goodElectrons = cms.EDFilter('CandViewSelector',
+            src = cms.InputTag('calibratedPatElectrons'),
+            cut = cms.string("pt > 15.0 & abs(eta) < 8.0 "),
+        )
+        process.twoGoodElectrons = cms.EDFilter('CandViewCountFilter',
+            src = cms.InputTag('goodElectrons'),
+            minNumber = cms.uint32(2),
+        )
+
     #activate the embedding again
     process.patElectrons.embedGsfElectronCore          = True
     process.patElectrons.embedGsfTrack                 = True
@@ -392,7 +407,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
         additional_actives = ['DataMetadata']
     else:
         additional_actives = ['GenMetadata', 'GenParticles', 'LHE']
-        if rundepMC:
+        if rundepMC in ['True', True]:
             additional_actives += ['DataMetadata']
     for active in additional_actives:
         process.kappatuple.active.append(active)
@@ -414,10 +429,11 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
         "^HLT_(Double)?Mu([0-9]+)_(Double)?Mu([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_Mu17_Mu8_v7' etc.
     )
 
-    process.pathKappa = cms.Path(
-        process.kappatuple
-    )
-
+    if channel == 'ee':
+        process.pathKappa = cms.Path(process.goodElectrons * process.twoGoodElectrons * process.kappatuple)
+        print "added filters to path"
+    else:
+        process.pathKappa = cms.Path(process.kappatuple)
 
     # Process schedule --------------------------------------------------------
     process.schedule = cms.Schedule(
@@ -453,4 +469,4 @@ def addOutputModule(process, filename="test_out.root"):
 
 if __name__ == "__main__":
     process = getBaseConfig('@GLOBALTAG@', datatype='@TYPE@', 
-            channel='@CHANNEL@', rundepMC=@RUNDEP@)
+            channel='@CHANNEL@', rundepMC='@RUNDEP@')
