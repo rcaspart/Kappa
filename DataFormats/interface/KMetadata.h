@@ -27,6 +27,10 @@ struct KLumiMetadata
 	std::vector<unsigned int> hltPrescales;
 	std::vector<std::string> hltNames;
 	//std::vector<std::vector<std::string> > filterNames;
+	unsigned int getOriginalnLumi(){
+		return (nLumi & 0x0000FFFF);
+	}
+
 };
 
 struct KTauDiscriminatorMetadata
@@ -92,6 +96,9 @@ struct KEventMetadata
 	inline bool hltFired (const size_t pos) const
 	{
 		return (bitsHLT & (1ull << pos)) != 0;
+	}
+	unsigned int getOriginalnLumi(){
+		return (nLumi & 0x0000FFFF);
 	}
 };
 
