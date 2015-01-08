@@ -18,7 +18,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
         # add command line arguments
         opt.register ('nevents', 100, VarParsing.multiplicity.singleton,
             VarParsing.varType.int, "Events to process")
-        opt.register ('testfile', 'storage/8/dhaitz/testfiles/mc_DYToEE-powheg.root',
+        opt.register ('testfile', '/storage/8/dhaitz/testfiles/mc_DYToEE-powheg.root',
             VarParsing.multiplicity.singleton, VarParsing.varType.string,
             "Test file to run on.")
         opt.register ('datatype', 'mc', VarParsing.multiplicity.singleton,
@@ -31,7 +31,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
             VarParsing.varType.string, "Name for the Kappa output file.")
 
         opt.parseArguments()
-        testfile = 'file:/' + opt.testfile
+        testfile = 'file:' + opt.testfile
         datatype = opt.datatype
         rundepMC = (datatype == 'mc')
         maxevents = opt.nevents

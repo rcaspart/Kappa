@@ -453,4 +453,4 @@ def addOutputModule(process, filename="test_out.root"):
 
 if __name__ == "__main__":
     process = getBaseConfig('@GLOBALTAG@', datatype='@TYPE@', 
-            channel='@CHANNEL@', rundepMC=@RUNDEP@)
+            channel='@CHANNEL@', rundepMC=True)#@RUNDEP@)
