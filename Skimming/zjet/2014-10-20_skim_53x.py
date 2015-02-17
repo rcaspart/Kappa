@@ -10,7 +10,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
        process = skim_base.getBaseConfig('START53_V12', "testfile.root")
     """
     #TODO: add config for mm and em channels
-
+    outputFileName = ""
     # for local testing (non-grid-mode):
     if '@' in globaltag:
         opt = VarParsing ('analysis')
@@ -95,63 +95,65 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
             minNumber = cms.uint32(2),
         )
 
-    #activate the embedding again
-    process.patElectrons.embedGsfElectronCore          = True
-    process.patElectrons.embedGsfTrack                 = True
-    process.patElectrons.embedSuperCluster             = True
-    process.patElectrons.embedPflowSuperCluster        = True
-    process.patElectrons.embedSeedCluster              = True
-    process.patElectrons.embedBasicClusters            = True
-    process.patElectrons.embedPreshowerClusters        = True
-    process.patElectrons.embedPflowBasicClusters       = True
-    process.patElectrons.embedPflowPreshowerClusters   = True
-    process.patElectrons.embedPFCandidate              = True
-    process.patElectrons.embedTrack                    = True
-    process.patElectrons.embedRecHits                  = True
+        #activate the embedding again
+        process.patElectrons.embedGsfElectronCore          = True
+        process.patElectrons.embedGsfTrack                 = True
+        process.patElectrons.embedSuperCluster             = True
+        process.patElectrons.embedPflowSuperCluster        = True
+        process.patElectrons.embedSeedCluster              = True
+        process.patElectrons.embedBasicClusters            = True
+        process.patElectrons.embedPreshowerClusters        = True
+        process.patElectrons.embedPflowBasicClusters       = True
+        process.patElectrons.embedPflowPreshowerClusters   = True
+        process.patElectrons.embedPFCandidate              = True
+        process.patElectrons.embedTrack                    = True
+        process.patElectrons.embedRecHits                  = True
 
-    # momentum corrections
-    process.load('EgammaAnalysis.ElectronTools.electronRegressionEnergyProducer_cfi')
-    process.eleRegressionEnergy.inputElectronsTag = cms.InputTag('patElectrons')
-    process.eleRegressionEnergy.inputCollectionType = cms.uint32(1)
+        # momentum corrections
+        process.load('EgammaAnalysis.ElectronTools.electronRegressionEnergyProducer_cfi')
+        process.eleRegressionEnergy.inputElectronsTag = cms.InputTag('patElectrons')
+        process.eleRegressionEnergy.inputCollectionType = cms.uint32(1)
 
-    process.load("Configuration.StandardSequences.Services_cff")
-    process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
-            calibratedPatElectrons = cms.PSet(
-                initialSeed = cms.untracked.uint32(1),
-                engineName = cms.untracked.string('TRandom3')
-            ),
-    )
-
-    # calibrate pat electrons
-    process.load("EgammaAnalysis.ElectronTools.calibratedPatElectrons_cfi")
-    if isData:
-        inputDataset =  "22Jan2013ReReco"
-    else:
-        inputDataset =  "Summer12_DR53X_HCP2012"
-    process.calibratedPatElectrons.inputDataset = cms.string(inputDataset)
-    process.calibratedPatElectrons.isMC = cms.bool(isMC)
-
-
-    ## for cutbased ID
-    from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso, setupPFMuonIso
-    process.calibeleIsoSequence = setupPFElectronIso(process, 'calibratedPatElectrons', "PFIsoCal")
-    process.eleIsoSequence = setupPFElectronIso(process, 'patElectrons')
-    process.pfiso = cms.Sequence(process.pfParticleSelectionSequence
-        + process.eleIsoSequence + process.calibeleIsoSequence 
+        process.load("Configuration.StandardSequences.Services_cff")
+        process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
+                calibratedPatElectrons = cms.PSet(
+                    initialSeed = cms.untracked.uint32(1),
+                    engineName = cms.untracked.string('TRandom3')
+                ),
         )
 
-    # rho for e isolation
-    from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
-    process.kt6PFJetsForIsolation = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
-    process.kt6PFJetsForIsolation.Rho_EtaMax = cms.double(2.5)
+        # calibrate pat electrons
+        process.load("EgammaAnalysis.ElectronTools.calibratedPatElectrons_cfi")
+        if isData:
+            inputDataset =  "22Jan2013ReReco"
+        else:
+            #inputDataset =  "Summer12_DR53X_HCP2012"
+            inputDataset =  "Summer12_LegacyPaper"
+        process.calibratedPatElectrons.inputDataset = cms.string(inputDataset)
+        process.calibratedPatElectrons.isMC = cms.bool(isMC)
+        #process.calibratedPatElectrons.verbose = cms.bool(True)
 
-    process.electrons = cms.Path(
-        process.makeKappaElectrons *
-        process.eleRegressionEnergy*
-        process.calibratedPatElectrons * 
-        process.pfiso *
-        process.kt6PFJetsForIsolation
-    )
+
+        ## for cutbased ID
+        from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso, setupPFMuonIso
+        process.calibeleIsoSequence = setupPFElectronIso(process, 'calibratedPatElectrons', "PFIsoCal")
+        process.eleIsoSequence = setupPFElectronIso(process, 'patElectrons')
+        process.pfiso = cms.Sequence(process.pfParticleSelectionSequence
+            + process.eleIsoSequence + process.calibeleIsoSequence 
+            )
+
+        # rho for e isolation
+        from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
+        process.kt6PFJetsForIsolation = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
+        process.kt6PFJetsForIsolation.Rho_EtaMax = cms.double(2.5)
+
+        process.electrons = cms.Path(
+            process.makeKappaElectrons *
+            process.eleRegressionEnergy*
+            process.calibratedPatElectrons * 
+            process.pfiso *
+            process.kt6PFJetsForIsolation
+        )
 
 
     # Create good primary vertices to be used for PF association --------------
@@ -276,7 +278,8 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
     )
 
     # PU jet ID ---------------------------------------------------------------
-    process.load("RecoJets.JetProducers.PileupJetID_cfi")
+    #process.load("RecoJets.JetProducers.PileupJetID_cfi")
+    process.load("CMGTools.External.pujetidproducer_cfi")
 
     # AK5
     process.ak5PFPuJetId = process.pileupJetIdProducer.clone(
@@ -398,7 +401,7 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
     process.load('Kappa.Producers.KTuple_cff')
     process.kappatuple = cms.EDAnalyzer('KTuple',
         process.kappaTupleDefaultsBlock,
-        outputFile = cms.string(outputFileName),
+        outputFile = cms.string("skim_%s.root" % datatype),
         PFTaggedJets = cms.PSet(
             process.kappaNoCut,
             process.kappaNoRegEx,
@@ -407,28 +410,29 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
                 "CombinedSecondaryVertexBJetTags", "CombinedSecondaryVertexMVABJetTags",
                 "puJetIDFullLoose", "puJetIDFullMedium", "puJetIDFullTight",
                 "puJetIDCutbasedLoose", "puJetIDCutbasedMedium", "puJetIDCutbasedTight",
-                "puJetIDMET"
+                #"puJetIDMET"
             ),
             AK5PFTaggedJets = cms.PSet(
                 src = cms.InputTag("ak5PFJets"),
                 QGtagger = cms.InputTag("AK5PFJetsQGTagger"),
                 Btagger = cms.InputTag("ak5PF"),
                 PUJetID = cms.InputTag("ak5PFPuJetMva"),
-                PUJetID_full = cms.InputTag("full"),
+                PUJetID_full = cms.InputTag("full53x"),
             ),
             AK5PFTaggedJetsCHS = cms.PSet(
                 src = cms.InputTag("ak5PFJetsCHS"),
                 QGtagger = cms.InputTag("AK5PFJetsCHSQGTagger"),
                 Btagger = cms.InputTag("ak5PFCHS"),
                 PUJetID = cms.InputTag("ak5PFCHSPuJetMva"),
-                PUJetID_full = cms.InputTag("full"),
+                PUJetID_full = cms.InputTag("full53xCHS"),
             ),
         ),
     )
 
     process.kappatuple.verbose = cms.int32(0)
     process.kappatuple.active = cms.vstring(
-        'LV', 'Electrons', 'TrackSummary', 'VertexSummary', 'BeamSpot',
+        'LV',
+         'TrackSummary', 'VertexSummary', 'BeamSpot',
         'JetArea', 'PFMET', 
         'FilterSummary', 
         'PFTaggedJets',
@@ -441,25 +445,35 @@ def getBaseConfig(globaltag, testfile="", maxevents=0,
         additional_actives = ['GenMetadata', 'GenParticles', 'LHE']
         if rundepMC in ['True', True]:
             additional_actives += ['DataMetadata']
+    if channel == 'ee':
+        additional_actives += ['Electrons']
+    elif channel == 'mm':
+        additional_actives += ['Muons']
+
     for active in additional_actives:
         process.kappatuple.active.append(active)
 
-    process.kappatuple.LV.blacklist += cms.vstring("AK5TrackJets", ".*KT.*")
+    process.kappatuple.LV.blacklist += cms.vstring("AK5TrackJets", ".*KT.*", "AK7GenJets")
     process.kappatuple.PFMET.blacklist = cms.vstring("pfType1.*CorrectedMet")
 
-    process.kappatuple.Metadata.hltWhitelist  += cms.vstring(
-        "^HLT_(Double)?E([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_DoubleMu7_v8' etc.
-        "^HLT_(Double)?Electron([0-9]+)(_v[[:digit:]]+)?$",
-        "^HLT_(Single)?Electron([0-9]+)(_v[[:digit:]]+)?$",
-        "HLT_Ele17.*",
-        "HLT_DoubleEle.*",
-        "HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL.*",
-        "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL.*",
-    )
+    if channel == 'ee':
+        process.kappatuple.Metadata.hltWhitelist  += cms.vstring(
+            "^HLT_(Double)?E([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_DoubleMu7_v8' etc.
+            "^HLT_(Double)?Electron([0-9]+)(_v[[:digit:]]+)?$",
+            "^HLT_(Single)?Electron([0-9]+)(_v[[:digit:]]+)?$",
+            "HLT_Ele17.*",
+            "HLT_DoubleEle.*",
+            "HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL.*",
+            "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL.*",
+        )
 
-    process.kappatuple.Metadata.hltBlacklist  += cms.vstring(
-        "^HLT_(Double)?Mu([0-9]+)_(Double)?Mu([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_Mu17_Mu8_v7' etc.
-    )
+        process.kappatuple.Metadata.hltBlacklist  += cms.vstring(
+            "^HLT_(Double)?Mu([0-9]+)_(Double)?Mu([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_Mu17_Mu8_v7' etc.
+        )
+    elif channel == 'mm':
+        process.kappatuple.Metadata.hltWhitelist  += cms.vstring(
+            "^HLT_(Double)?Mu([0-9]+)_(Double)?Mu([0-9]+)(_v[[:digit:]]+)?$",  # matches 'HLT_Mu17_Mu8_v7' etc.
+        )
 
     if channel == 'ee':
         process.pathKappa = cms.Path(process.goodElectrons * process.twoGoodElectrons * process.kappatuple)
