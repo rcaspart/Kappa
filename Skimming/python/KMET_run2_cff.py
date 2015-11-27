@@ -29,7 +29,7 @@ from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
 
 mvaMETJets = cms.EDProducer('PFJetCorrectionProducer',
     src = cms.InputTag('ak4PFJets'),
-    correctors = cms.vstring("ak4PFL1FastL2L3")
+    correctors = cms.vstring("ak4PFL1FastL2L3Corrector")
     )
 
 from RecoJets.JetProducers.pileupjetidproducer_cfi import pileupJetIdEvaluator
@@ -39,7 +39,7 @@ from RecoMET.METPUSubtraction.mvaPFMET_cff import calibratedAK4PFJetsForPFMVAMEt
 from JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff import corrPfMetType1
 #from JetMETCorrections.Type1MET.correctedMet_cff import *
 
-corrPfMetType1.jetCorrLabel = "ak4PFL1FastL2L3" 
+corrPfMetType1.jetCorrLabel = "ak4PFL1FastL2L3Corrector"
 
 ## ------------------------------------------------------------------------
 ## muons as input for mvaMET producer
@@ -292,6 +292,102 @@ def configureMVAMetForMiniAOD(process):
 		                process.metMVAMT * 
 		                process.metMVATT )
 
+def configureMVAMetForMiniAODOnTheFly(process):
+		process.ak4PFJets.src = cms.InputTag("particleFlow")
+		process.ak4PFJets.doAreaFastjet = cms.bool(True)
+		process.pfMetMVA.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
+		process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+		# Todo for miniAOD: find a selector that works in pat Taus and slimmedElectrons
+		process.metMVAEM.srcLeptons = cms.VInputTag("slimmedElectrons", "slimmedMuons" )
+		process.metMVAET.srcLeptons = cms.VInputTag("slimmedElectrons", "slimmedTaus")
+		process.metMVAMT.srcLeptons = cms.VInputTag("slimmedMuons"    , "slimmedTaus")
+		process.metMVATT.srcLeptons = cms.VInputTag("slimmedTaus"     , "slimmedTaus")
+		process.metMVAEM.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.metMVAET.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.metMVAMT.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.metMVATT.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+		process.metMVAEM.srcPFCandidates = cms.InputTag("packedPFCandidates")
+		process.metMVAET.srcPFCandidates = cms.InputTag("packedPFCandidates")
+		process.metMVAMT.srcPFCandidates = cms.InputTag("packedPFCandidates")
+		process.metMVATT.srcPFCandidates = cms.InputTag("packedPFCandidates")
+		process.makeKappaMET = cms.Sequence( 
+		                process.ak4PFJets *
+		                process.calibratedAK4PFJetsForPFMVAMEt * 
+		                process.mvaMETJets * 
+		                process.puJetIdForPFMVAMEt * 
+		                process.metMVAEM * 
+		                process.metMVAET * 
+		                process.metMVAMT * 
+		                process.metMVATT )
+
+def configurePFMetForMiniAODOnTheFly(process, data=False):
+
+	# do produce pfMet and No-HF pfMet, both raw and T1 corrected
+	from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+	jecUncertaintyFile="PhysicsTools/PatUtils/data/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"
+
+	runMetCorAndUncFromMiniAOD(process, isData=data, jecUncFile=jecUncertaintyFile )
+	process.noHFCands = cms.EDFilter("CandPtrSelector", src=cms.InputTag("packedPFCandidates"), cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0") )
+	runMetCorAndUncFromMiniAOD(process, isData=data, pfCandColl=cms.InputTag("noHFCands"), jecUncFile=jecUncertaintyFile,  postfix="NoHF" )
+
+	process.patPFMet.computeMETSignificance = cms.bool(True)
+	process.patPFMet.srcLeptons = cms.VInputTag("slimmedTaus", "slimmedElectrons", "slimmedMuons")
+	process.patPFMetNoHF.computeMETSignificance = cms.bool(True)
+	process.patPFMetNoHF.srcLeptons = cms.VInputTag("slimmedTaus", "slimmedElectrons", "slimmedMuons")
+	process.pfMet.calculateSignificance = cms.bool(True)
+	process.pfMetNoHF.calculateSignificance = cms.bool(True)
+	from RecoMET.METProducers.METSignificanceParams_cfi import METSignificanceParams
+	process.pfMet.parameters = METSignificanceParams
+	process.pfMet.srcMet = cms.InputTag("pfMet")
+	process.pfMet.srcJets = cms.InputTag("slimmedJets")
+	process.pfMet.srcLeptons = cms.VInputTag("slimmedTaus", "slimmedElectrons", "slimmedMuons")
+	process.pfMetNoHF.parameters = METSignificanceParams
+	process.pfMetNoHF.srcMet = cms.InputTag("pfMetNoHF")
+	process.pfMetNoHF.srcJets = cms.InputTag("slimmedJets")
+	process.pfMetNoHF.srcLeptons = cms.VInputTag("slimmedTaus", "slimmedElectrons", "slimmedMuons")
+	process.pfMetNoHF.srcCandidates = cms.InputTag("noHFCands")
+
+	# temporary fix from Missing ET mailing list
+	process.patMETs.addGenMET  = cms.bool(False)
+	process.patJets.addGenJetMatch = cms.bool(False)
+	process.patJets.addGenPartonMatch = cms.bool(False)
+	process.patJets.addPartonJetMatch = cms.bool(False)
+
+	# latest Recommendataion https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections#type_1_PF_MET_recommended
+	process.corrPfMetType1.type1JetPtThreshold = cms.double(15.0)
+	process.patPFMetT1T2Corr.type1JetPtThreshold = cms.double(15.0)
+	process.patPFMetT1T2CorrNoHF.type1JetPtThreshold = cms.double(15.0)
+
+
+	process.makePFMET = cms.Sequence()
+
+	if not data:
+		process.makePFMET = cms.Sequence( process.genMetExtractor )
+
+	process.makePFMET *= cms.Sequence( 
+		                process.ak4PFJets *
+		                process.pfCHS *
+		                process.ak4PFJetsCHS *
+		                process.pfMet *
+		                process.patJetCorrFactors *
+		                process.patJets *
+		                process.patPFMetT1T2Corr *
+		                process.patPFMetTxyCorr *
+		                process.noHFCands *
+		                process.pfCHSNoHF *
+		                process.pfMetNoHF *
+		                process.ak4PFJetsCHSNoHF *
+		                process.patJetCorrFactorsNoHF *
+		                process.patJetsNoHF *
+		                process.selectedPatJetsNoHF *
+		                process.patPFMetNoHF *
+		                process.selectedPatJets *
+		                process.patPFMetT1T2CorrNoHF *
+		                process.patPFMetTxyCorrNoHF *
+		                process.patPFMetT1NoHF
+		)
 
 def configurePFMetForMiniAOD(process, data=False):
 

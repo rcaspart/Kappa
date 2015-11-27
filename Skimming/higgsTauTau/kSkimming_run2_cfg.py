@@ -38,6 +38,7 @@ options.register('testfile', '', VarParsing.multiplicity.singleton, VarParsing.v
 options.register('maxevents', -1, VarParsing.multiplicity.singleton, VarParsing.varType.int, 'maxevents')
 options.register('outputfilename', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, 'Filename for the Outputfile')
 options.register('testsuite', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run the Kappa test suite. Default: True')
+options.register('miniAODOnTheFly', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on AOD using miniAOD on the fly')
 options.parseArguments()
 
 cmssw_version_number = tools.get_cmssw_version_number()
@@ -49,7 +50,10 @@ def getBaseConfig( globaltag= 'START70_V7::All',
                    kappaTag = 'Kappa_2_0_0',
 				   outputfilename = ''):
 
-	from Kappa.Skimming.KSkimming_template_cfg import process
+	if options.miniAODOnTheFly:
+		from Kappa.Skimming.KSkimming_template_miniAODOnTheFly_cfg import process
+	else:
+		from Kappa.Skimming.KSkimming_template_cfg import process
 	## ------------------------------------------------------------------------
 	## Write out edmFile to allos unscheduled modules to work
 	process.load("Kappa.Skimming.edmOut")
@@ -74,6 +78,10 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	process.kappaTuple.active = cms.vstring('TreeInfo')
 	data, isEmbedded, miniaod, process.kappaTuple.TreeInfo.parameters = datasetsHelper.getTreeInfo(nickname, globaltag, kappaTag)
 
+	if options.miniAODOnTheFly:
+		miniaod = True
+	
+
 	process.p *= process.nEventsTotal
 	if not data:
 		process.p *= process.nNegEventsTotal
@@ -81,9 +89,10 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	# General configuration
 	process.kappaTuple.active += cms.vstring('VertexSummary')            # save VertexSummary,
 	if miniaod:
-		process.load("Kappa.Skimming.KVertices_cff")
-		process.goodOfflinePrimaryVertices.src = cms.InputTag('offlineSlimmedPrimaryVertices')
-		process.p *= ( process.makeVertexes )
+		if not options.miniAODOnTheFly:
+			process.load("Kappa.Skimming.KVertices_cff")
+			process.goodOfflinePrimaryVertices.src = cms.InputTag('offlineSlimmedPrimaryVertices')
+			process.p *= ( process.makeVertexes )
 		if (cmssw_version_number.startswith("7_4")):
 			process.kappaTuple.VertexSummary.whitelist = cms.vstring('offlineSlimmedPrimaryVertices')  # save VertexSummary,
 			process.kappaTuple.VertexSummary.rename = cms.vstring('offlineSlimmedPrimaryVertices => goodOfflinePrimaryVerticesSummary')
@@ -133,6 +142,7 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	process.kappaTuple.Info.hltWhitelist = hltWhitelist
 	process.kappaTuple.Info.hltBlacklist = hltBlacklist
 
+
 	## ------------------------------------------------------------------------
 	# Configure PFCandidates and offline PV
 	if(not miniaod):
@@ -151,6 +161,7 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	if(miniaod):
 		process.kappaTuple.active += cms.vstring('packedPFCandidates') # save PFCandidates. Not sure for what, because might not be usefull for isolation
 
+
 	## ------------------------------------------------------------------------
 	# Configure Muons
 	if not miniaod:
@@ -165,6 +176,7 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	process.kappaTuple.active += cms.vstring('Muons')
 	process.kappaTuple.Muons.minPt = cms.double(8.0)
 	process.p *= ( process.makeKappaMuons )
+
 
 	## ------------------------------------------------------------------------
 	# Configure Electrons
@@ -233,6 +245,7 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 		process.kappaTuple.Taus.taus.binaryDiscrBlacklist = cms.vstring("^shrinkingCone.*", ".*PFlow$", ".*raw.*", ".*Raw.*", "^hpsPFTauDiscriminationByVLoose.*", "^hpsPFTauDiscriminationByVTight.*", "^hpsPFTauDiscriminationByMedium.*")
 		process.kappaTuple.Taus.taus.preselectOnDiscriminators = cms.vstring("hpsPFTauDiscriminationByDecayModeFindingNewDMs")
 
+
 	## ------------------------------------------------------------------------
 	## Configure Jets
 
@@ -263,7 +276,7 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	## ------------------------------------------------------------------------
 	## MET
 	process.load("Kappa.Skimming.KMET_run2_cff")
-	from Kappa.Skimming.KMET_run2_cff import configureMVAMetForAOD, configureMVAMetForMiniAOD
+	from Kappa.Skimming.KMET_run2_cff import configureMVAMetForAOD, configureMVAMetForMiniAOD, configureMVAMetForMiniAODOnTheFly
 	from Kappa.Skimming.KMET_run2_cff import configurePFMetForMiniAOD
 
 	if (not miniaod):
@@ -280,9 +293,9 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 		                                                    )
 		process.p *= process.makeKappaMET
 
-	if(miniaod):
+	if(miniaod and not options.miniAODOnTheFly):
 		configureMVAMetForMiniAOD(process)
-		configurePFMetForMiniAOD(process, data=data)
+		#configurePFMetForMiniAOD(process, data=data)
 
 		## Standard MET and GenMet from pat::MET
 		process.kappaTuple.active += cms.vstring('PatMET')
@@ -297,9 +310,25 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 		                                                   "metMVATT"
 		                                                    )
 
-		process.p *= (  process.makeKappaMET * 
-		                process.makePFMET *
-		                process.patMetModuleSequence)
+		process.p *=  ( process.makeKappaMET ) #*
+		#                process.makePFMET *
+		#                process.patMetModuleSequence)
+	
+	if(options.miniAODOnTheFly):
+		configureMVAMetForMiniAODOnTheFly(process)
+		## Standard MET and GenMet from pat::MET
+		process.kappaTuple.active += cms.vstring('PatMET')
+		process.kappaTuple.PatMET.whitelist = cms.vstring("patPFMet(T1)?(NoHF)?_")
+
+		## Write MVA MET to KMETs. To check what happens on AOD
+		process.kappaTuple.active += cms.vstring('PatMETs')
+		process.kappaTuple.PatMETs.whitelist = cms.vstring(
+		                                                   "metMVAEM",
+		                                                   "metMVAET",
+		                                                   "metMVAMT",
+		                                                   "metMVATT"
+		                                                    )
+		process.p *= process.makeKappaMET
 
 	## ------------------------------------------------------------------------
 	## GenJets 
@@ -337,12 +366,14 @@ def getBaseConfig( globaltag= 'START70_V7::All',
 	process.p *= process.nEventsFiltered 
 	process.kappaTuple.active += cms.vstring('FilterSummary')
 
+
 	## ------------------------------------------------------------------------
 	## if needed adapt output filename
 	if outputfilename != '':
 		process.kappaTuple.outputFile = cms.string('%s'%outputfilename)
 
 	return process
+
 
 if __name__ == "__main__" or __name__ == "kSkimming_run2_cfg":
 
@@ -366,3 +397,55 @@ if __name__ == "__main__" or __name__ == "kSkimming_run2_cfg":
 				process = getBaseConfig(options.globalTag, nickname=options.nickname, kappaTag=options.kappaTag, maxevents=options.maxevents, outputfilename=options.outputfilename)
 			else:
 				process = getBaseConfig(options.globalTag, nickname=options.nickname, kappaTag=options.kappaTag, maxevents=options.maxevents)
+
+	if options.miniAODOnTheFly:
+		process.schedule = cms.Schedule(process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.p,process.ep,process.endjob_step)
+
+		# Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.postLS1Customs
+		from SLHCUpgradeSimulations.Configuration.postLS1Customs import customisePostLS1 
+
+		#call to customisation function customisePostLS1 imported from SLHCUpgradeSimulations.Configuration.postLS1Customs
+		process = customisePostLS1(process)
+
+		# Automatic addition of the customisation function from Configuration.DataProcessing.Utils
+		from Configuration.DataProcessing.Utils import addMonitoring 
+
+		#call to customisation function addMonitoring imported from Configuration.DataProcessing.Utils
+		process = addMonitoring(process)
+
+
+		# End of customisation functions
+		#do not add changes to your config after this point (unless you know what you are doing)
+		from FWCore.ParameterSet.Utilities import convertToUnscheduled
+		process=convertToUnscheduled(process)
+		process.load('Configuration.StandardSequences.PATMC_cff')
+		from FWCore.ParameterSet.Utilities import cleanUnscheduled
+		process=cleanUnscheduled(process)
+
+		# customisation of the process.
+
+		# Automatic addition of the customisation function from PhysicsTools.PatAlgos.slimming.miniAOD_tools
+		from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeAllMC 
+
+
+		#call to customisation function miniAOD_customizeAllMC imported from PhysicsTools.PatAlgos.slimming.miniAOD_tools
+		process = miniAOD_customizeAllMC(process)
+
+		#hack to get the ValueMaps for the ElectronIDs
+		#need to disable the IDs for the patElectrons and reset to our values
+		process.electronMVAValueMapProducerKappa = process.electronMVAValueMapProducer.clone()
+		process.electronIDValueMapProducerKappa = process.electronIDValueMapProducer.clone()
+		process.electronRegressionValueMapProducerKappa = process.electronRegressionValueMapProducer.clone()
+
+		process.electronMVAValueMapProducerKappa.src = cms.InputTag("")
+		process.electronIDValueMapProducerKappa.src = cms.InputTag("")
+		process.electronRegressionValueMapProducerKappa.src = cms.InputTag("")
+		process.egmGsfElectronIDsKappa = process.egmGsfElectronIDs.clone()
+		process.egmGsfElectronIDsKappa.physicsObjectSrc = cms.InputTag("slimmedElectrons")
+		
+		process.egmGsfElectronIDSequenceKappa = process.egmGsfElectronIDSequence.copy()
+		for i in process.egmGsfElectronIDSequenceKappa.moduleNames():
+			if i in ["egmGsfElectronIDs","electronMVAValueMapProducer","electronIDValueMapProducer","electronRegressionValueMapProducer"]:
+				process.egmGsfElectronIDSequenceKappa.replace(getattr(process,i),getattr(process,i+"Kappa"))
+
+		process.makeKappaElectrons.replace(process.egmGsfElectronIDSequence,process.egmGsfElectronIDSequenceKappa)
