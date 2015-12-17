@@ -9,13 +9,14 @@
 
 #include "KBaseMultiProducer.h"
 #include "../../DataFormats/interface/KBasic.h"
+#include <FWCore/Framework/interface/EDProducer.h>
 #include <DataFormats/METReco/interface/MET.h>
 
 class KBasicMETProducer : public KBaseMultiProducer<edm::View<reco::MET>, KBasicMET>
 {
 public:
-	KBasicMETProducer(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_run_tree) :
-		KBaseMultiProducer<edm::View<reco::MET>, KBasicMET>(cfg, _event_tree, _run_tree, getLabel()) {}
+	KBasicMETProducer(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_run_tree, edm::ConsumesCollector && consumescollector) :
+		KBaseMultiProducer<edm::View<reco::MET>, KBasicMET>(cfg, _event_tree, _run_tree, getLabel(), std::forward<edm::ConsumesCollector>(consumescollector)) {}
 
 	static const std::string getLabel() { return "BasicMET"; }
 

@@ -22,6 +22,7 @@
 #include <FWCore/MessageLogger/interface/ErrorSummaryEntry.h>
 #include <FWCore/ParameterSet/interface/ParameterSet.h>
 #include <FWCore/Utilities/interface/InputTag.h>
+#include <FWCore/Framework/interface/EDProducer.h>
 
 #include <DataFormats/Common/interface/TriggerResults.h>
 #include <DataFormats/HLTReco/interface/TriggerEvent.h>
@@ -55,8 +56,8 @@ struct KInfo_Product
 class KInfoProducerBase : public KBaseProducerWP
 {
 public:
-	KInfoProducerBase(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_lumi_tree) :
-		KBaseProducerWP(cfg, _event_tree, _lumi_tree, "KInfo") {}
+	KInfoProducerBase(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_lumi_tree, edm::ConsumesCollector && consumescollector) :
+		KBaseProducerWP(cfg, _event_tree, _lumi_tree, "KInfo", std::forward<edm::ConsumesCollector>(consumescollector)) {}
 
 	virtual ~KInfoProducerBase() {};
 
@@ -77,8 +78,8 @@ template<typename Tmeta>
 class KInfoProducer : public KInfoProducerBase
 {
 public:
-	KInfoProducer(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_lumi_tree) :
-		KInfoProducerBase(cfg, _event_tree, _lumi_tree),
+	KInfoProducer(const edm::ParameterSet &cfg, TTree *_event_tree, TTree *_lumi_tree, edm::ConsumesCollector && consumescollector) :
+		KInfoProducerBase(cfg, _event_tree, _lumi_tree, std::forward<edm::ConsumesCollector>(consumescollector)),
 		tauDiscrProcessName(cfg.getUntrackedParameter<std::string>("tauDiscrProcessName", "")),
 		tagL1Results(cfg.getParameter<edm::InputTag>("l1Source")),
 		tagHLTResults(cfg.getParameter<edm::InputTag>("hltSource")),
@@ -267,13 +268,13 @@ public:
 			{
 				const std::string &name = metaLumi->hltNames[i];
 				unsigned int prescale = 0;
-#ifdef NEWHLT
+/*#ifdef NEWHLT
 				std::pair<int, int> prescale_L1_HLT = KInfoProducerBase::hltConfig.prescaleValues(event, setup, name);
 				if (prescale_L1_HLT.first < 0 || prescale_L1_HLT.second < 0)
 					prescale = 0;
 				else
 					prescale = prescale_L1_HLT.first * prescale_L1_HLT.second;
-#endif
+#endif*/
 				if (metaLumi->hltPrescales[i] == 0)
 				{
 					if (verbosity > 0 || printHltList)
