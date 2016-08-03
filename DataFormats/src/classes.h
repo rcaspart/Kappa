@@ -14,6 +14,7 @@
 
 #define G__DICTIONARY
 
+#include "../interface/CrystalBallEfficiency.h"
 #include "../interface/Hash.h"
 #include "../interface/KBasic.h"
 #include "../interface/KElectron.h"
@@ -35,6 +36,7 @@ namespace
 		RMFLV_Store dict_RMFLV_Store;
 		RMDLV dict_RMDLV;
 		RMDLV_Store dict_RMDLV_Store;
+		CrystalBallEfficiency dict_CrystalBallEfficiency;
 		KEventInfo dict_KEventInfo;
 		KGenEventInfo dict_KGenEventInfo;
 		KBasicJet dict_KBasicJet;

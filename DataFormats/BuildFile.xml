@@ -4,6 +4,7 @@
 <flags REM_CXXFLAGS="-fipa-pta"/>
 <use name="rootrflx" />
 <use name="rootmath" />
+<use name="roofit" />
 <use name="boost" />
 <use name="boost_system" />
 

@@ -9,6 +9,7 @@
 #ifndef KDATAFORMAT_H
 #define KDATAFORMAT_H
 
+#include "CrystalBallEfficiency.h"
 #include "Hash.h"
 #include "KBasic.h"
 #include "KElectron.h"
@@ -39,6 +40,7 @@ struct TypeName;
 	}                                  \
 
 
+REGISTER_NAME_OF_TYPE(CrystalBallEfficiency,CrystalBallEfficiency);
 REGISTER_NAME_OF_TYPE(KEventInfo,KEventInfo);
 REGISTER_NAME_OF_TYPE(KGenEventInfo,KGenEventInfo);
 REGISTER_NAME_OF_TYPE(KBasicJet,KBasicJet);

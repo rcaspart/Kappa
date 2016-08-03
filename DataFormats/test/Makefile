@@ -10,15 +10,19 @@ WARNINGS = -Wextra -Wno-unused-parameter -Wswitch-enum -Wsync-nand \
            -Wunreachable-code
 # additional warnings that show up in dictionary code created by ROOT
 #          -Wconversion -Wuseless-cast -Wcast-equal -Wswitch-default -Wmissing-declarations
-LDFLAGS  = -O $(shell root-config --libs) $(SYSLIBS) \
-	-lGenVector -lMathCore
+LDFLAGS  = -O $(shell root-config --libs) $(SYSLIBS) -L$(ROOFITSYS)lib\
+	-lGenVector -lMathCore -lRooFitCore
 
 # Boost
 # Use Boost from CMSSW if CMSSW env available otherwise fall back to system boost
 BOOST_INCDIR = $(shell test ! -z $(CMSSW_BASE) && cd $(CMSSW_BASE) && scram tool info boost | sed -n 's/INCLUDE=/-isystem/p')
-CXXFLAGS += $(BOOST_INCDIR)
+CXXFLAGS += $(BOOST_INCDIR) -I$(ROOFITSYS)include
 
 all: $(PROGRAM)
+
+CrystalBallEfficiency.o: ../src/CrystalBallEfficiency.cpp
+	@echo $(CXX) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(CXXFLAGS) $(WARNINGS) -c -o $@ $<
 
 Hash.o: ../src/Hash.cpp
 	@echo $(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -33,7 +37,7 @@ Hash.o: ../src/Hash.cpp
 	mkdir -p ../../lib
 	cp $@ ../../lib
 
-%.so: %.o KDebug.o Hash.o
+%.so: %.o KDebug.o Hash.o CrystalBallEfficiency.o
 	$(CXX) $(LDFLAGS) -shared -o $@ $^
 	mkdir -p ../../lib
 	cp $@ ../../lib
@@ -42,7 +46,7 @@ Hash.o: ../src/Hash.cpp
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 libKappa.cpp: standalone.h ../src/classes.h LinkDef.h
-	rootcint -f $@ -c $^
+	rootcint -f $@ -c -I$(ROOFITSYS)include $^
 
 install: $(PROGRAM)
 

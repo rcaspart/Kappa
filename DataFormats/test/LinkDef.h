@@ -63,6 +63,8 @@
 
 #pragma link C++ typedef RMDLV_Store;
 
+#pragma link C++ class CrystalBallEfficiency+;
+
 /* Event tree classes */
 
 #pragma link C++ struct KEventInfo+;

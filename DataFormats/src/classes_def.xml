@@ -3,6 +3,7 @@
 	<class name="RMFLV_Store"/>
 	<class name="RMDLV"/>
 	<class name="RMDLV_Store"/>
+	<class name="CrystalBallEfficiency"/>
 	<class name="KEventInfo"/>
 	<class name="KGenEventInfo"/>
 	<class name="KBasicJet"/>

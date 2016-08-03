@@ -18,6 +18,7 @@ ROOT Lorentz vectors in float and double precision
 - RMFLV_Store
 - RMDLV
 - RMDLV_Store
++ CrystalBallEfficiency
 
 
 ## Event tree classes ################################
